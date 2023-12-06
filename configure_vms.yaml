@@ -1,0 +1,46 @@
+- hosts: all
+  roles:
+    - role: search_domains
+      tags: [ "search_domains" ]
+#    - role: disk_format
+#      tags: [ "data_disks" ]
+    - role: swap_file
+      tags: ["base", "swap"]
+  tasks:
+
+    - name: Fail if linux distribution is not handled
+      tags: ["always"]
+      ansible.builtin.fail:
+        msg: "{{ansible_facts['distribution']}} is not handled"
+      when: not (ansible_facts['distribution'] == 'Ubuntu')
+
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ ansible_host }}"
+      tags: ["hostname"]
+
+    - block:
+        - name: Update all packages to their latest version
+          tags: [ "update_pkg" ]
+          ansible.builtin.apt:
+            name: "*"
+            state: latest
+            update_cache: yes
+
+        - name: Add some useful package
+          tags: [ "addon_pkg" ]
+          package: pkg=vim,htop,mlocate,ifupdown,net-tools,dnsutils,xfsprogs,whois,screen,ncdu
+
+        - name: Test if reboot is required
+          tags: ["always"]
+          ansible.builtin.stat:
+            path: /var/run/reboot-required
+          register: reboot_result
+
+        - name: "Reboot if needed"
+          tags: ["always"]
+          ansible.builtin.reboot:
+            reboot_timeout: 600
+          when: reboot_result.stat.exists
+
+      when: ansible_facts['distribution'] == 'Ubuntu'

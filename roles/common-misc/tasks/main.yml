@@ -1,0 +1,35 @@
+---
+- name: Install misc stuff - Midnight commander, wget, Python MySQL, openssl
+  vars:
+    packages_Suse: ['mc', 'wget', 'python-mysql', 'openssl']
+    packages_RedHat: ['mc', 'wget', 'MySQL-python',
+                      'yum-utils', 'unzip', 'openssl',
+                      'syslinux', 'sdparm', 'hdparm',
+                      'redhat-lsb-core', 'lsof']
+    # syslinux-utils is for gethostip, libpython is required for collectd
+    packages_Debian: ['mc',
+                      'wget',
+                      #'python-mysqldb',
+                      'libmysqlclient-dev',
+                      'python2.7-dev',
+                      'python2',
+                      #'python-pip',
+                      'python3-pip',
+                      'openssl',
+                      'syslinux-utils',
+                      'libpython2.7']
+  package: name={{ item }} state=present
+  with_items: "{{ vars['packages_' + ansible_os_family] }}"
+
+#- name: Install package MYSQL-python 1
+#  ansible.builtin.pip:
+#    name: install MYSQL-python
+#  ignore_errors: true
+#
+#- name: Install package MYSQL-python 2
+#  shell: sudo wget https://raw.githubusercontent.com/paulfitz/mysql-connector-c/master/include/my_config.h -P /usr/include/mysql/
+#
+#- name: Install package MYSQL-python 3
+#  ansible.builtin.pip:
+#    name: install MYSQL-python
+#  ignore_errors: true
